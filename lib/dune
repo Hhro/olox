@@ -1,2 +1,2 @@
 (library
- (name olox))
+ (name lox))
