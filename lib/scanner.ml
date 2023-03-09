@@ -106,6 +106,9 @@ let scan_token t =
 
 let scan_tokens =
   let rec loop t =
-    if t |> is_over then t.tokens |> List.rev else t |> scan_token |> loop
+    if t |> is_over then
+      let eof_token = Token.create Token.EOF "" 0 in
+      eof_token :: t.tokens |> List.rev
+    else t |> scan_token |> loop
   in
   loop
