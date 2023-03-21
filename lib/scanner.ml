@@ -101,8 +101,10 @@ let scan_token t =
   | c when c |> is_alphanumeric -> add_identfier_or_keyword c
   | ' ' | '\r' | '\t' -> skip
   | _ ->
-      Error.error t.line
-        (Format.sprintf "Unexpected character: %c at %d:%d" c t.line t.current)
+      Error.report
+        (Error.ParseError
+           { line = t.line; msg = Format.sprintf "Unexpected characted '%c'" c });
+      skip
 
 let scan_tokens =
   let rec loop t =
