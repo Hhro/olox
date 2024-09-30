@@ -18,6 +18,7 @@ let get_char t =
 let peek t = if is_at_end t then None else Some (String.get t.source t.current)
 let get_lexeme t = String.sub t.source t.start (t.current - t.start)
 let advance t = { t with current = t.current + 1 }
+let newline t = { t with line = t.line + 1 }
 
 let add_token token_type t =
   let token : Token.t =
@@ -37,12 +38,13 @@ let add_slash_or_skip_comment t =
   let rec skip_comment t =
     let next = advance t in
     match get_char next with
-    | Some '\n' | None -> next
+    | Some '\n' -> t
+    | None -> t
     | _ -> skip_comment next
   in
   let next = advance t in
   match get_char next with
-  | Some '/' -> skip_comment t
+  | Some '/' -> skip_comment next
   | _ -> add_token SLASH t
 ;;
 
@@ -66,6 +68,8 @@ let scan_token t =
      | '<' -> add_token_conditionally LESS_EQUAL LESS next
      | '>' -> add_token_conditionally GREATER_EQUAL GREATER next
      | '/' -> add_slash_or_skip_comment next
+     | ' ' | '\r' | '\t' -> next
+     | '\n' -> newline next
      | _ -> Error.error next.line "Unexpected character.")
   | None -> next
 ;;
@@ -77,5 +81,7 @@ let rec scan_tokens t =
       { token_type = Token.EOF; lexeme = ""; literal = ""; line = t.line }
     in
     List.rev (eof_token :: t.tokens))
-  else scan_tokens (scan_token t)
+  else (
+    let scanner = { t with start = t.current } in
+    scan_tokens (scan_token scanner))
 ;;
