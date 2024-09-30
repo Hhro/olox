@@ -1,4 +1,4 @@
-type kind =
+type token_type =
   (* single-character tokens *)
   | LEFT_PAREN
   | RIGHT_PAREN
@@ -24,7 +24,7 @@ type kind =
   | IDENTIFIER
   | STRING
   | NUMBER
-  (* reserved *)
+  (* keywords *)
   | AND
   | CLASS
   | ELSE
@@ -43,11 +43,7 @@ type kind =
   | WHILE
   | EOF
 
-type t = { kind : kind; lexeme : string; line : int }
-
-let create kind lexeme line = { kind; lexeme; line }
-
-let string_of_kind kind =
+let to_string kind =
   match kind with
   | LEFT_PAREN -> "LEFT_PAREN"
   | RIGHT_PAREN -> "RIGHT_PAREN"
@@ -88,26 +84,14 @@ let string_of_kind kind =
   | VAR -> "VAR"
   | WHILE -> "WHILE"
   | EOF -> "EOF"
+;;
 
-let rsvd_kind_of_string s =
-  match s with
-  | "and" -> AND
-  | "class" -> CLASS
-  | "else" -> ELSE
-  | "false" -> FALSE
-  | "fun" -> FUN
-  | "for" -> FOR
-  | "if" -> IF
-  | "nil" -> NIL
-  | "or" -> OR
-  | "print" -> PRINT
-  | "return" -> RETURN
-  | "super" -> SUPER
-  | "this" -> THIS
-  | "true" -> TRUE
-  | "var" -> VAR
-  | "while" -> WHILE
-  | "eof" -> EOF
-  | _ -> failwith "unreachable"
+type t =
+  { token_type : token_type
+  ; lexeme : string
+  ; literal : string
+  ; line : int
+  }
 
-let to_string t = Format.sprintf "%s %s" (string_of_kind t.kind) t.lexeme
+let to_string t = String.concat " " [ to_string t.token_type; t.lexeme; t.literal ]
+let pp ppf t = Format.fprintf ppf "%s" (to_string t)
