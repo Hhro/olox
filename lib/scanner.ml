@@ -118,8 +118,10 @@ let add_number_token t =
     | Some c when is_digit c -> consume_digit (advance t)
     | Some '.' when peek_next t |> is_some_digit -> consume_digit (advance t)
     | _ ->
+      let text = String.sub t.source t.start (t.current - t.start) in
       let literal =
-        Value.number_of_string (String.sub t.source t.start (t.current - t.start))
+        try Value.Number (float_of_string text) with
+        | _ -> Error.error t.line "Invalid Number."
       in
       add_token ~literal NUMBER t
   in
