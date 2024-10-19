@@ -1,12 +1,5 @@
 type t =
-  | Number of float
-  | String of string
+  | Number of float [@printer fun fmt -> fprintf fmt "%g"]
+  | String of string [@printer fun fmt -> fprintf fmt "\"%s\""]
   | Nil
-[@@deriving show]
-
-let to_string t =
-  match t with
-  | Number f -> string_of_float f
-  | String s -> s
-  | Nil -> ""
-;;
+[@@deriving show { with_path = false }]
