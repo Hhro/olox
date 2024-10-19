@@ -6,6 +6,30 @@ type t =
   ; line : int
   }
 
+module StringMap = Map.Make (String)
+
+let keyword_map =
+  StringMap.of_seq
+  @@ List.to_seq
+       [ "and", Token.AND
+       ; "class", Token.CLASS
+       ; "else", Token.ELSE
+       ; "false", Token.FALSE
+       ; "for", Token.FOR
+       ; "fun", Token.FUN
+       ; "if", Token.IF
+       ; "nil", Token.NIL
+       ; "or", Token.OR
+       ; "print", Token.PRINT
+       ; "return", Token.RETURN
+       ; "super", Token.SUPER
+       ; "this", Token.THIS
+       ; "true", Token.TRUE
+       ; "var", Token.VAR
+       ; "while", Token.WHILE
+       ]
+;;
+
 let init source = { source; tokens = []; start = 0; current = 0; line = 1 }
 let is_at_end t = t.current >= String.length t.source
 
@@ -27,9 +51,17 @@ let peek_next t =
 
 let is_digit c =
   match c with
-  | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> true
+  | '0' .. '9' -> true
   | _ -> false
 ;;
+
+let is_alpha c =
+  match c with
+  | 'a' .. 'z' | 'A' .. 'Z' | '_' -> true
+  | _ -> false
+;;
+
+let is_alphanumeric c = is_alpha c || is_digit c
 
 let is_some_digit optc =
   match optc with
@@ -94,6 +126,19 @@ let add_number_token t =
   consume_digit t
 ;;
 
+let add_identifier_token t =
+  let rec consume_alnum t =
+    match peek t with
+    | Some c when is_alphanumeric c -> consume_alnum (advance t)
+    | _ ->
+      let text = String.sub t.source t.start (t.current - t.start) in
+      if StringMap.mem text keyword_map
+      then add_token (StringMap.find text keyword_map) t
+      else add_token IDENTIFIER t
+  in
+  consume_alnum t
+;;
+
 let scan_token t =
   let next = advance t in
   match get_char next with
@@ -116,6 +161,7 @@ let scan_token t =
      | '/' -> add_slash_or_skip_comment next
      | '"' -> add_string_token next
      | c when is_digit c -> add_number_token next
+     | c when is_alpha c -> add_identifier_token next
      | ' ' | '\r' | '\t' -> next
      | '\n' -> newline next
      | _ -> Error.error next.line "Unexpected character.")
