@@ -1,6 +1,7 @@
+exception OLoxError of string
+
 let report line where message =
-  Format.eprintf "[line %d] Error %s: %s" line where message;
-  exit 1
+  raise (OLoxError (Format.sprintf "[line %d] Error %s: %s" line where message))
 ;;
 
 let error line message = report line "" message

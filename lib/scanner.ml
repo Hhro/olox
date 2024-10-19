@@ -20,10 +20,8 @@ let get_lexeme t = String.sub t.source t.start (t.current - t.start)
 let advance t = { t with current = t.current + 1 }
 let newline t = { t with line = t.line + 1 }
 
-let add_token token_type t =
-  let token : Token.t =
-    { token_type; lexeme = get_lexeme t; literal = ""; line = t.line }
-  in
+let add_token ?(literal = "") token_type t =
+  let token : Token.t = { token_type; lexeme = get_lexeme t; literal; line = t.line } in
   { t with tokens = token :: t.tokens }
 ;;
 
@@ -48,6 +46,22 @@ let add_slash_or_skip_comment t =
   | _ -> add_token SLASH t
 ;;
 
+let add_string_token t =
+  let rec consume_string t =
+    match peek t with
+    | Some '"' ->
+      let next = advance t in
+      let literal =
+        String.sub next.source (next.start + 1) (next.current - next.start - 2)
+      in
+      add_token ~literal STRING next
+    | Some '\n' -> advance t |> newline |> consume_string
+    | Some _ -> consume_string (advance t)
+    | None -> Error.error t.line "Unterminated Strring."
+  in
+  consume_string t
+;;
+
 let scan_token t =
   let next = advance t in
   match get_char next with
@@ -68,6 +82,7 @@ let scan_token t =
      | '<' -> add_token_conditionally LESS_EQUAL LESS next
      | '>' -> add_token_conditionally GREATER_EQUAL GREATER next
      | '/' -> add_slash_or_skip_comment next
+     | '"' -> add_string_token next
      | ' ' | '\r' | '\t' -> next
      | '\n' -> newline next
      | _ -> Error.error next.line "Unexpected character.")
