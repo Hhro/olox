@@ -2,7 +2,7 @@ let run src =
   src
   |> Scanner.init
   |> Scanner.scan_tokens
-  |> List.iter (fun t -> Format.asprintf "%a" Token.pp t |> print_endline);
+  |> List.iter (fun t -> Format.printf "%s" (Token.show t));
   true
 ;;
 

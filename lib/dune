@@ -1,2 +1,5 @@
 (library
- (name olox_lib))
+ (name olox_lib)
+ (preprocess
+  (pps ppx_deriving.show))
+ (libraries ppx_deriving))

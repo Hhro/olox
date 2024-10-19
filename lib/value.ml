@@ -2,6 +2,7 @@ type t =
   | Number of float
   | String of string
   | Nil
+[@@deriving show]
 
 let to_string t =
   match t with
