@@ -1,0 +1,12 @@
+(library
+ (name olox_tests)
+ (libraries
+  olox_lib
+  ppx_expect.config
+  ppx_expect.config_types
+  ppx_expect
+  ppx_inline_test.config)
+ (inline_tests
+  (modes native))
+ (preprocess
+  (pps ppx_expect)))
