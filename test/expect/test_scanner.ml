@@ -74,5 +74,26 @@ let%expect_test "unterm" =
   |> Scanner.scan_tokens
   |> List.iter (fun t -> Format.asprintf "%a" Token.pp t |> print_endline)
 [@@expect.uncaught_exn
-  {| ("Olox_lib.Error.OLoxError(\"[line 1] Error : Unterminated Strring.\")") |}]
+  {| ("Olox_lib.Error.OLoxError(\"[line 1] Error : Unterminated String.\")") |}]
+;;
+
+(* 4.6.2 Number literals *)
+let%expect_test "integer" =
+  {| 12345678 |}
+  |> Scanner.init
+  |> Scanner.scan_tokens
+  |> List.iter (fun t -> Format.asprintf "%a" Token.pp t |> print_endline);
+  [%expect {|
+    NUMBER 12345678 12345678.
+    EOF |}]
+;;
+
+let%expect_test "decimal" =
+  {| 12345678.1234 |}
+  |> Scanner.init
+  |> Scanner.scan_tokens
+  |> List.iter (fun t -> Format.asprintf "%a" Token.pp t |> print_endline);
+  [%expect {|
+    NUMBER 12345678.1234 12345678.1234
+    EOF |}]
 ;;

@@ -89,9 +89,12 @@ let to_string kind =
 type t =
   { token_type : token_type
   ; lexeme : string
-  ; literal : string
+  ; literal : Value.t
   ; line : int
   }
 
-let to_string t = String.concat " " [ to_string t.token_type; t.lexeme; t.literal ]
+let to_string t =
+  String.concat " " [ to_string t.token_type; t.lexeme; Value.to_string t.literal ]
+;;
+
 let pp ppf t = Format.fprintf ppf "%s" (to_string t)
