@@ -83,5 +83,5 @@ let%expect_test "invalid_token" =
   tokens |> Parser.init |> Parser.parse |> Expr.parenthesize |> Format.printf "%s";
   [%expect.unreachable]
 [@@expect.uncaught_exn
-  {| ("Olox_lib.Parser.ParseError(\"[line 1] Error at '-': Expect expression.\")") |}]
+  {| ("Olox_lib.Parser.ParseError(\"[line 1] Error at end: Expect expression.\")") |}]
 ;;

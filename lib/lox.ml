@@ -2,7 +2,10 @@ let run src =
   src
   |> Scanner.init
   |> Scanner.scan_tokens
-  |> List.iter (fun t -> Format.printf "%s" (Token.show t));
+  |> Parser.init
+  |> Parser.parse
+  |> Expr.parenthesize
+  |> print_endline;
   true
 ;;
 
