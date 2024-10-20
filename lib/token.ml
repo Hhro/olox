@@ -50,4 +50,4 @@ type t =
   ; literal : Value.t
   ; line : int
   }
-[@@deriving show { with_path = false }]
+[@@deriving show { with_path = false }, make]
