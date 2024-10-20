@@ -3,6 +3,7 @@ type t =
   | Grouping of t
   | Literal of Value.t
   | Unary of Token.t * t
+  | Nil
 [@@deriving show]
 
 let rec parenthesize t =
@@ -12,4 +13,5 @@ let rec parenthesize t =
   | Grouping expr -> Format.sprintf "(group %s)" (parenthesize expr)
   | Literal value -> Value.show value
   | Unary (op, expr) -> Format.sprintf "(%s %s)" op.lexeme (parenthesize expr)
+  | Nil -> "nil"
 ;;
