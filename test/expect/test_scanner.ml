@@ -66,7 +66,7 @@ let%expect_test "unterm" =
   let unterminated = {| "H |} in
   unterminated |> Scanner.init |> Scanner.scan_tokens |> print_tokens
 [@@expect.uncaught_exn
-  {| ("Olox_lib.Error.OLoxError(\"[line 1] Error : Unterminated String.\")") |}]
+  {| ("Olox_lib.Scanner.ScanError(1, \"Unterminated String.\")") |}]
 ;;
 
 (* 4.6.2 Number literals *)

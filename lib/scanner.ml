@@ -1,3 +1,5 @@
+exception ScanError of int * string
+
 type t =
   { source : string
   ; tokens : Token.t list
@@ -107,7 +109,7 @@ let add_string_token t =
       add_token ~literal STRING next
     | Some '\n' -> advance t |> newline |> consume_string
     | Some _ -> consume_string (advance t)
-    | None -> Error.error t.line "Unterminated String."
+    | None -> raise (ScanError (t.line, "Unterminated String."))
   in
   consume_string t
 ;;
@@ -121,7 +123,7 @@ let add_number_token t =
       let text = String.sub t.source t.start (t.current - t.start) in
       let literal =
         try Value.Number (float_of_string text) with
-        | _ -> Error.error t.line "Invalid Number."
+        | _ -> raise (ScanError (t.line, "Invalid Number."))
       in
       add_token ~literal NUMBER t
   in
@@ -166,7 +168,7 @@ let scan_token t =
      | c when is_alpha c -> add_identifier_token next
      | ' ' | '\r' | '\t' -> next
      | '\n' -> newline next
-     | _ -> Error.error next.line "Unexpected character.")
+     | _ -> raise (ScanError (next.line, "Unexpected character.")))
   | None -> next
 ;;
 

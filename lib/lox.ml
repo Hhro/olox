@@ -1,12 +1,18 @@
+let had_error = ref false
+let interpret expr = print_endline (Value.show (Expr.evaluate expr))
+
 let run src =
-  src
-  |> Scanner.init
-  |> Scanner.scan_tokens
-  |> Parser.init
-  |> Parser.parse
-  |> Expr.parenthesize
-  |> print_endline;
-  true
+  try
+    src |> Scanner.init |> Scanner.scan_tokens |> Parser.init |> Parser.parse |> interpret
+  with
+  | Scanner.ScanError (line, msg) ->
+    Format.printf "[line %d] Error: %s\n" line msg;
+    Format.print_flush ();
+    had_error := true
+  | Expr.TypeError (token, msg) ->
+    Format.printf "[line %d] Error: %s\n" token.line msg;
+    Format.print_flush ();
+    had_error := true
 ;;
 
 let run_prompt () =
@@ -17,7 +23,8 @@ let run_prompt () =
       try input_line stdin with
       | End_of_file -> exit 0
     in
-    if run line then exec_line () else exit 65
+    run line;
+    exec_line ()
   in
   exec_line ()
 ;;
@@ -30,5 +37,6 @@ let run_file src_path =
       Format.eprintf "read error: %s" src_path;
       exit 1
   in
-  if not (run src) then exit 65
+  run src;
+  if !had_error then exit 65
 ;;
