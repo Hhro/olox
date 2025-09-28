@@ -22,6 +22,23 @@ let error (token : Token.t) message =
 
 let rec expression t = equality t
 
+and statement t =
+  let op = peek t in
+  match op.token_type with
+  | PRINT -> print_statement (advance t)
+  | _ -> expression_statement t
+
+and print_statement t =
+  let expr, next = expression t in
+  if (peek next).token_type != SEMICOLON then error (peek next) "Expect ';' after value.";
+  Stmt.Print expr, advance next
+
+and expression_statement t =
+  let expr, next = expression t in
+  if (peek next).token_type != SEMICOLON
+  then error (peek next) "Expect ';' after expression.";
+  Stmt.Expression expr, advance next
+
 and equality t =
   let rec derive_right expr t =
     let op = peek t in
@@ -110,4 +127,13 @@ let synchronize t =
   discard_until_next_stmt t
 ;;
 
-let parse t = if is_at_end t then Expr.Nil else fst (expression t)
+let parse t =
+  let rec stmt_until_end statements cur =
+    if is_at_end cur
+    then List.rev statements
+    else (
+      let stmt, next = statement t in
+      stmt_until_end (stmt :: statements) next)
+  in
+  stmt_until_end [] t
+;;

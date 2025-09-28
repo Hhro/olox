@@ -1,5 +1,15 @@
 let had_error = ref false
-let interpret expr = print_endline (Value.show (Expr.evaluate expr))
+
+let interpret stmts =
+  let rec aux stmts =
+    match stmts with
+    | hd :: tl ->
+      Stmt.accept hd;
+      aux tl
+    | [] -> ()
+  in
+  aux stmts
+;;
 
 let run src =
   try
