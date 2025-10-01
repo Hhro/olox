@@ -4,20 +4,22 @@ type t =
   | Binary of t * Token.t * t
   | Grouping of t
   | Literal of Value.t
+  | Variable of Token.t
   | Unary of Token.t * t
   | Nil
 [@@deriving show]
 
-let rec evaluate t =
+let rec evaluate t env =
   match t with
   | Literal v -> v
-  | Grouping t -> evaluate t
-  | Unary (token, t) -> evaluate_unary token t
-  | Binary (lt, token, rt) -> evaluate_binary lt token rt
+  | Variable name -> Env.get name env
+  | Grouping t -> evaluate t env
+  | Unary (token, t) -> evaluate_unary token t env
+  | Binary (lt, token, rt) -> evaluate_binary lt token rt env
   | Nil -> Value.Nil
 
-and evaluate_unary token t =
-  let value = evaluate t in
+and evaluate_unary token t env =
+  let value = evaluate t env in
   try
     match token.token_type with
     | MINUS -> Value.(~-value)
@@ -26,9 +28,9 @@ and evaluate_unary token t =
   with
   | Value.TypeError msg -> raise (TypeError (token, msg))
 
-and evaluate_binary lt token rt =
-  let lvalue = evaluate lt in
-  let rvalue = evaluate rt in
+and evaluate_binary lt token rt env =
+  let lvalue = evaluate lt env in
+  let rvalue = evaluate rt env in
   try
     match token.token_type with
     | GREATER -> Value.(lvalue > rvalue)
@@ -46,12 +48,17 @@ and evaluate_binary lt token rt =
   | Value.TypeError msg -> raise (TypeError (token, msg))
 ;;
 
-let rec parenthesize t =
+let rec parenthesize t env =
   match t with
   | Binary (lexpr, op, rexpr) ->
-    Format.sprintf "(%s %s %s)" op.lexeme (parenthesize lexpr) (parenthesize rexpr)
-  | Grouping expr -> Format.sprintf "(group %s)" (parenthesize expr)
+    Format.sprintf
+      "(%s %s %s)"
+      op.lexeme
+      (parenthesize lexpr env)
+      (parenthesize rexpr env)
+  | Grouping expr -> Format.sprintf "(group %s)" (parenthesize expr env)
   | Literal value -> Value.show value
-  | Unary (op, expr) -> Format.sprintf "(%s %s)" op.lexeme (parenthesize expr)
+  | Variable name -> name.lexeme
+  | Unary (op, expr) -> Format.sprintf "(%s %s)" op.lexeme (parenthesize expr env)
   | Nil -> "nil"
 ;;

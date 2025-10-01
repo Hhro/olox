@@ -1,6 +1,7 @@
 open! Olox_lib
 
 let%expect_test "print" =
+  let env = Env.empty in
   let expr =
     Expr.Binary
       ( Expr.Unary
@@ -9,6 +10,6 @@ let%expect_test "print" =
       , { token_type = Token.STAR; lexeme = "*"; literal = Value.Nil; line = 1 }
       , Expr.Grouping (Expr.Literal (Value.Number 45.67)) )
   in
-  Format.printf "%s" (Expr.parenthesize expr);
+  Format.printf "%s" (Expr.parenthesize expr env);
   [%expect {| (* (- 123) (group 45.67)) |}]
 ;;
