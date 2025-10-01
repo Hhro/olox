@@ -115,3 +115,41 @@ let%expect_test "invalid_token" =
       nil |}]
   | _ -> failwith "unreachable"
 ;;
+
+let%expect_test "print_statement" =
+  let env = Env.empty in
+  Printexc.record_backtrace false;
+  let tokens : Token.t list =
+    [ Token.make ~token_type:Token.PRINT ~lexeme:"print" ~literal:Value.Nil ~line:1
+    ; Token.make ~token_type:Token.NUMBER ~lexeme:"3" ~literal:(Value.Number 3.0) ~line:1
+    ; Token.make ~token_type:Token.PLUS ~lexeme:"+" ~literal:Value.Nil ~line:1
+    ; Token.make ~token_type:Token.NUMBER ~lexeme:"4" ~literal:(Value.Number 4.0) ~line:1
+    ; Token.make ~token_type:Token.SEMICOLON ~lexeme:";" ~literal:Value.Nil ~line:1
+    ; Token.make ~token_type:Token.EOF ~lexeme:"" ~literal:Value.Nil ~line:1
+    ]
+  in
+  let stmt = tokens |> Parser.init |> Parser.parse |> List.hd in
+  Stmt.accept stmt env |> ignore;
+  [%expect {| 7 |}]
+;;
+
+let%expect_test "var_statement" =
+  let env = Env.empty in
+  Printexc.record_backtrace false;
+  let tokens : Token.t list =
+    [ Token.make ~token_type:Token.VAR ~lexeme:"var" ~literal:Value.Nil ~line:1
+    ; Token.make ~token_type:Token.IDENTIFIER ~lexeme:"a" ~literal:Value.Nil ~line:1
+    ; Token.make ~token_type:Token.EQUAL ~lexeme:"=" ~literal:Value.Nil ~line:1
+    ; Token.make ~token_type:Token.NUMBER ~lexeme:"3" ~literal:(Value.Number 3.0) ~line:1
+    ; Token.make ~token_type:Token.SEMICOLON ~lexeme:";" ~literal:Value.Nil ~line:1
+    ; Token.make ~token_type:Token.EOF ~lexeme:"" ~literal:Value.Nil ~line:1
+    ]
+  in
+  let stmt = tokens |> Parser.init |> Parser.parse |> List.hd in
+  let updated = Stmt.accept stmt env in
+  match stmt with
+  | Stmt.Var (name, _) ->
+    Env.get name updated |> Value.show |> Format.printf "%s";
+    [%expect {| 3 |}]
+  | _ -> failwith "unreachable"
+;;
